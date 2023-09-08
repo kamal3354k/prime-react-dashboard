@@ -3,6 +3,7 @@ import { classNames } from "primereact/utils";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Toast } from "primereact/toast";
+import { Tag } from "primereact/tag";
 import { Button } from "primereact/button";
 import { Toolbar } from "primereact/toolbar";
 import { InputTextarea } from "primereact/inputtextarea";
@@ -14,10 +15,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCurrentProduct } from "../../../redux/slice/productSlice.jsx";
 import { initialState_Product } from "../../../redux/slice/productSlice.jsx";
 import { productCategoryList } from "../../../pages/dashboard/constant.js";
+import "./style.scss";
+import { ratingBodyTemplate } from "./utlis/customTemplate.jsx";
 
 export function GridDataTable({ data, tableColumnData }) {
   const [products, setProducts] = useState([]);
-  const [productDialog, setProductDialog] = useState(false);
+  const [productDialog, setProductDialog] = useState({
+    value: false,
+    action: "",
+  });
   const [deleteProductDialog, setDeleteProductDialog] = useState(false);
   const [deleteProductsDialog, setDeleteProductsDialog] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState(null);
@@ -39,12 +45,12 @@ export function GridDataTable({ data, tableColumnData }) {
   const openNew = () => {
     dispatch(setCurrentProduct(initialState_Product));
     setSubmitted(false);
-    setProductDialog(true);
+    setProductDialog({ value: true, action: "add" });
   };
 
   const hideDialog = () => {
     setSubmitted(false);
-    setProductDialog(false);
+    setProductDialog((pre) => ({ ...pre, value: false }));
   };
 
   const hideDeleteProductDialog = () => {
@@ -93,12 +99,19 @@ export function GridDataTable({ data, tableColumnData }) {
   const editProduct = (product) => {
     dispatch(setCurrentProduct({ ...product }));
     setProductDialog(true);
+    setProductDialog({ value: true, action: "edit" });
   };
 
   const confirmDeleteProduct = (product) => {
     dispatch(setCurrentProduct(product));
+    setProductDialog({ value: true, action: "delete" });
 
     setDeleteProductDialog(true);
+  };
+
+  const viewProduct = (product) => {
+    dispatch(setCurrentProduct(product));
+    setProductDialog({ value: true, action: "view" });
   };
 
   const deleteProduct = () => {
@@ -233,7 +246,15 @@ export function GridDataTable({ data, tableColumnData }) {
           rounded
           outlined
           severity="danger"
+          className="mr-2"
           onClick={() => confirmDeleteProduct(rowData)}
+        />
+        <Button
+          icon="pi pi-eye"
+          rounded
+          outlined
+          severity="primary"
+          onClick={() => viewProduct(rowData)}
         />
       </React.Fragment>
     );
@@ -327,13 +348,13 @@ export function GridDataTable({ data, tableColumnData }) {
       </div>
 
       <Dialog
-        visible={productDialog}
+        visible={productDialog.value}
         style={{ width: "32rem" }}
         breakpoints={{ "960px": "75vw", "641px": "90vw" }}
         header="Product Details"
         modal
-        className="p-fluid"
-        footer={productDialogFooter}
+        className="p-fluid product_modal"
+        footer={productDialog.action !== "view" && productDialogFooter}
         onHide={hideDialog}
       >
         {product.image && (
@@ -343,82 +364,154 @@ export function GridDataTable({ data, tableColumnData }) {
             className="product-image block m-auto pb-3"
           />
         )}
-        <div className="field">
-          <label htmlFor="name" className="font-bold">
-            Name
-          </label>
-          <InputText
-            id="name"
-            value={product.title}
-            onChange={(e) => onInputChange(e, "title")}
-            required
-            autoFocus
-            className={classNames({ "p-invalid": submitted && !product.title })}
-          />
-          {submitted && !product.title && (
-            <small className="p-error">Name is required.</small>
-          )}
-        </div>
-        <div className="field">
-          <label htmlFor="description" className="font-bold">
-            Description
-          </label>
-          <InputTextarea
-            id="description"
-            value={product.description}
-            onChange={(e) => onInputChange(e, "description")}
-            required
-            rows={3}
-            cols={20}
-          />
-        </div>
+        {productDialog.action !== "view" ? (
+          <>
+            <div className="field">
+              <label htmlFor="name" className="font-bold">
+                Name
+              </label>
 
-        <div className="field">
-          <label className="mb-3 font-bold">Category</label>
-          <div className="formgrid grid">
-            <div className="field-radiobutton col-6">
-              {productCategoryList.map((item, i) => (
-                <>
-                  <RadioButton
-                    key={i}
-                    inputId={`category${i}`}
-                    name="category"
-                    value={item.value}
-                    onChange={onCategoryChange}
-                    checked={product.category === item.value}
-                  />
-                  <label htmlFor={`category${i}`}>{item.text}</label>
-                </>
-              ))}
+              <InputText
+                id="name"
+                value={product.title}
+                onChange={(e) => onInputChange(e, "title")}
+                required
+                autoFocus
+                className={classNames({
+                  "p-invalid": submitted && !product.title,
+                })}
+              />
+
+              {submitted && !product.title && (
+                <small className="p-error">Name is required.</small>
+              )}
             </div>
-          </div>
-        </div>
+            <div className="field">
+              <label htmlFor="description" className="font-bold">
+                Description
+              </label>
+              <InputTextarea
+                id="description"
+                value={product.description}
+                onChange={(e) => onInputChange(e, "description")}
+                required
+                rows={3}
+                cols={20}
+              />
+            </div>
 
-        <div className="formgrid grid">
-          <div className="field col">
-            <label htmlFor="price" className="font-bold">
-              Price
-            </label>
-            <InputNumber
-              id="price"
-              value={product.price}
-              onValueChange={(e) => onInputNumberChange(e, "price")}
-              mode="currency"
-              currency="USD"
-              locale="en-US"
-            />
-          </div>
-          <div className="field col">
-            <label htmlFor="quantity" className="font-bold">
-              Quantity
-            </label>
-            <InputNumber
-              id="quantity"
-              value={product.quantity}
-              onValueChange={(e) => onInputNumberChange(e, "quantity")}
-            />
-          </div>
-        </div>
+            <div className="field">
+              <label className="mb-3 font-bold">Category</label>
+              <div className="formgrid grid">
+                <div className="field-radiobutton col-6">
+                  {productCategoryList.map((item, i) => (
+                    <>
+                      <RadioButton
+                        key={i}
+                        inputId={`category${i}`}
+                        name="category"
+                        value={item.value}
+                        onChange={onCategoryChange}
+                        checked={product.category === item.value}
+                      />
+                      <label htmlFor={`category${i}`}>{item.text}</label>
+                    </>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="formgrid grid">
+              <div className="field col">
+                <label htmlFor="price" className="font-bold">
+                  Price
+                </label>
+                <InputNumber
+                  id="price"
+                  value={product.price}
+                  onValueChange={(e) => onInputNumberChange(e, "price")}
+                  mode="currency"
+                  currency="USD"
+                  locale="en-US"
+                />
+              </div>
+              <div className="field col">
+                <label htmlFor="quantity" className="font-bold">
+                  Quantity
+                </label>
+                <InputNumber
+                  id="quantity"
+                  value={product.quantity}
+                  onValueChange={(e) => onInputNumberChange(e, "quantity")}
+                />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="view_product">
+              <div className="view_product_image_container">
+                <img className="view_product_image" src={product.thumbnail} />
+              </div>
+              <div className="view_product_other_image">
+                {product?.images?.map((item, i) => (
+                  <div
+                    className="other_image"
+                    key={i}
+                    style={{ backgroundImage: `url(${item})` }}
+                  ></div>
+                ))}
+              </div>
+              <div className="view_product_details">
+                <table>
+                  <tr>
+                    <td>
+                      <b>Name :</b>
+                    </td>
+                    <td>{product.title}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <b>Category :</b>
+                    </td>
+                    <td>{product.category}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <b>Brand :</b>
+                    </td>
+                    <td>{product.brand}</td>
+                  </tr>
+
+                  <tr>
+                    <td>
+                      <b>Price :</b>
+                    </td>
+                    <td>{product.price}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <b>Rating :</b>
+                    </td>
+                    <td>{ratingBodyTemplate(product)}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <b>Quantity :</b>
+                    </td>
+                    <td>{product.stock}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <b>Description :</b>
+                    </td>
+                    <td>{product.description}</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
       </Dialog>
 
       <Dialog

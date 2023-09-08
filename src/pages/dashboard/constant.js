@@ -50,7 +50,6 @@ export const ProductTableData = [
   {
     header: "Action",
     exportable: false,
-    body: (item) => item,
     style: { minWidth: "12rem" },
   },
 ];

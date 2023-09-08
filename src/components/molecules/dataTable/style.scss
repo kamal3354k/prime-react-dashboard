@@ -1,0 +1,30 @@
+.product_modal {
+  img {
+    max-width: 100%;
+  }
+  .view_product {
+    .view_product_image_container {
+      .view_product_image {
+      }
+    }
+    .view_product_other_image {
+      display: flex;
+      padding: 5px 0;
+      .other_image {
+        margin: 2px;
+        border: 3px solid #ece9e9;
+        width: 100%;
+        background-size: cover;
+        background-position: center;
+        height: 70px;
+      }
+    }
+    .view_product_details{
+        table{
+            tr{
+                padding: 20px;
+            }
+        }
+    }
+  }
+}

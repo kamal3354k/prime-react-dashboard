@@ -33,6 +33,9 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
+    "node-sass": "^9.0.0",
+    "sass": "^1.66.1",
+    "scss": "^0.2.4",
     "vite": "^4.4.5"
   }
 }
