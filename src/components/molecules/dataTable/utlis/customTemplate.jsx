@@ -2,7 +2,7 @@ import { Rating } from "primereact/rating";
 import { Tag } from "primereact/tag";
 
 export const formatCurrency = (value) => {
-  return value.toLocaleString("en-US", {
+  return value?.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
   });
@@ -20,7 +20,7 @@ export const getStockAndSeverity = (product) => {
 
 // template
 export const priceBodyTemplate = (rowData) => {
-  return formatCurrency(rowData.price);
+  return formatCurrency(rowData?.price);
 };
 
 export const imageBodyTemplate = (rowData) => {

@@ -3,7 +3,6 @@ import { GridDataTable } from "../../components/molecules/dataTable/GridDataTabl
 import { Typography } from "@mui/material";
 import { useGetAllProductsQuery } from "../../redux/services/productApi";
 import { ProductTableData } from "./constant";
-
 const Dashboard = () => {
   const { data } = useGetAllProductsQuery((state) => state.productApi);
   return (

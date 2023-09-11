@@ -3,7 +3,7 @@ import { classNames } from "primereact/utils";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Toast } from "primereact/toast";
-import { Tag } from "primereact/tag";
+import { FileUpload } from "primereact/fileupload";
 import { Button } from "primereact/button";
 import { Toolbar } from "primereact/toolbar";
 import { InputTextarea } from "primereact/inputtextarea";
@@ -79,7 +79,7 @@ export function GridDataTable({ data, tableColumnData }) {
           life: 3000,
         });
       } else {
-        _product.id = createId();
+        _product.id = products.length+1;
         _product.image = "product-placeholder.svg";
         _products.push(_product);
         toast.current.show({
@@ -104,8 +104,6 @@ export function GridDataTable({ data, tableColumnData }) {
 
   const confirmDeleteProduct = (product) => {
     dispatch(setCurrentProduct(product));
-    setProductDialog({ value: true, action: "delete" });
-
     setDeleteProductDialog(true);
   };
 
@@ -174,12 +172,19 @@ export function GridDataTable({ data, tableColumnData }) {
       life: 3000,
     });
   };
-
   const onCategoryChange = (e) => {
     let _product = { ...product };
 
     _product["category"] = e.value;
     dispatch(setCurrentProduct(_product));
+  };
+  const handleImageUpload = (e) => {
+    let _product = { ...product };
+    if (e.files.length) {
+      _product["thumbnail"] = e.files[0].objectURL;
+      _product["images"] = e.files.map((d)=>d.objectURL);
+      dispatch(setCurrentProduct(_product));
+    }
   };
 
   const onInputChange = (e, name) => {
@@ -187,7 +192,6 @@ export function GridDataTable({ data, tableColumnData }) {
     let _product = { ...product };
 
     _product[`${name}`] = val;
-
     dispatch(setCurrentProduct(_product));
   };
 
@@ -311,7 +315,6 @@ export function GridDataTable({ data, tableColumnData }) {
       />
     </React.Fragment>
   );
-
   return (
     <div>
       <Toast ref={toast} />
@@ -357,10 +360,10 @@ export function GridDataTable({ data, tableColumnData }) {
         footer={productDialog.action !== "view" && productDialogFooter}
         onHide={hideDialog}
       >
-        {product.image && (
+        {productDialog.action === "view"&&!product.thumbnail && (
           <img
             src={`https://primefaces.org/cdn/primereact/images/product/${product.image}`}
-            alt={product.image}
+            alt={product.thumbnail}
             className="product-image block m-auto pb-3"
           />
         )}
@@ -387,6 +390,40 @@ export function GridDataTable({ data, tableColumnData }) {
               )}
             </div>
             <div className="field">
+              <label htmlFor="demo" className="font-bold">
+                Photo
+              </label>
+              <FileUpload
+                onSelect={handleImageUpload}
+                mode="basic"
+                multiple
+                name="demo"
+                accept="image/*"
+                maxFileSize={1000000}
+              />
+            </div>
+
+            <div className="field">
+              <label htmlFor="name" className="font-bold">
+                Brand
+              </label>
+
+              <InputText
+                id="brand"
+                value={product.brand}
+                onChange={(e) => onInputChange(e, "brand")}
+                required
+                autoFocus
+                className={classNames({
+                  "p-invalid": submitted && !product.title,
+                })}
+              />
+
+              {submitted && !product.brand && (
+                <small className="p-error">Brand is required.</small>
+              )}
+            </div>
+            <div className="field">
               <label htmlFor="description" className="font-bold">
                 Description
               </label>
@@ -403,21 +440,18 @@ export function GridDataTable({ data, tableColumnData }) {
             <div className="field">
               <label className="mb-3 font-bold">Category</label>
               <div className="formgrid grid">
-                <div className="field-radiobutton col-6">
-                  {productCategoryList.map((item, i) => (
-                    <>
-                      <RadioButton
-                        key={i}
-                        inputId={`category${i}`}
-                        name="category"
-                        value={item.value}
-                        onChange={onCategoryChange}
-                        checked={product.category === item.value}
-                      />
-                      <label htmlFor={`category${i}`}>{item.text}</label>
-                    </>
-                  ))}
-                </div>
+                {productCategoryList.map((item, i) => (
+                  <div className="field-radiobutton col-6" key={i}>
+                    <RadioButton
+                      inputId={`category${i}`}
+                      name="category"
+                      value={item.value}
+                      onChange={onCategoryChange}
+                      checked={product.category === item.value}
+                    />
+                    <label htmlFor={`category${i}`}>{item.text}</label>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -441,8 +475,8 @@ export function GridDataTable({ data, tableColumnData }) {
                 </label>
                 <InputNumber
                   id="quantity"
-                  value={product.quantity}
-                  onValueChange={(e) => onInputNumberChange(e, "quantity")}
+                  value={product.stock}
+                  onValueChange={(e) => onInputNumberChange(e, "stock")}
                 />
               </div>
             </div>

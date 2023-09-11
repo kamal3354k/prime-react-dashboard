@@ -11,6 +11,11 @@ export const ProductTableData = [
     exportable: false,
   },
   {
+    field: "id",
+    header: "ID",
+    sortable: true,
+  },
+  {
     field: "title",
     header: "Name",
     sortable: true,
@@ -20,6 +25,11 @@ export const ProductTableData = [
     field: "image",
     header: "Image",
     body: imageBodyTemplate,
+  },
+  {
+    field: "brand",
+    header: "Brand",
+    sortable: true,
   },
   {
     field: "price",
