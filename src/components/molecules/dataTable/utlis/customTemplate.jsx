@@ -1,5 +1,6 @@
 import { Rating } from "primereact/rating";
 import { Tag } from "primereact/tag";
+import { defaultImage } from "../../viewAndEditProductCard/constant";
 
 export const formatCurrency = (value) => {
   return value?.toLocaleString("en-US", {
@@ -9,9 +10,9 @@ export const formatCurrency = (value) => {
 };
 
 export const getStockAndSeverity = (product) => {
-  if (product.stock > 20) {
+  if (product?.stock > 20) {
     return { severity: "success", text: "INSTOCK" };
-  } else if (product.stock > 0 && product.stock < 20) {
+  } else if (product?.stock > 0 && product.stock < 20) {
     return { severity: "warning", text: "LOWSTOCK" };
   } else {
     return { severity: "danger", text: "OUTOFSTOCK" };
@@ -26,8 +27,8 @@ export const priceBodyTemplate = (rowData) => {
 export const imageBodyTemplate = (rowData) => {
   return (
     <img
-      src={rowData.thumbnail}
-      alt={rowData.title}
+      src={rowData?.thumbnail || defaultImage}
+      alt={rowData?.title}
       className="shadow-2 border-round"
       style={{ width: "64px" }}
     />
@@ -35,10 +36,12 @@ export const imageBodyTemplate = (rowData) => {
 };
 
 export const ratingBodyTemplate = (rowData) => {
-  return <Rating value={Math.round(rowData.rating)} readOnly cancel={false} />;
+  return <Rating value={Math.round(rowData?.rating)} readOnly cancel={false} />;
 };
 
 export const statusBodyTemplate = (rowData) => {
   const { severity, text } = getStockAndSeverity(rowData);
   return <Tag value={text} severity={severity}></Tag>;
 };
+
+

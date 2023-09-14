@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { classNames } from "primereact/utils";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -17,9 +17,10 @@ import { initialState_Product } from "../../../redux/slice/productSlice.jsx";
 import { productCategoryList } from "../../../pages/dashboard/constant.js";
 import "./style.scss";
 import { ratingBodyTemplate } from "./utlis/customTemplate.jsx";
+import { useNavigate } from "react-router-dom";
+import { setAllProduct } from "../../../redux/slice/allProductSlice.jsx";
 
-export function GridDataTable({ data, tableColumnData }) {
-  const [products, setProducts] = useState([]);
+export function GridDataTable({ tableColumnData, isAdmin }) {
   const [productDialog, setProductDialog] = useState({
     value: false,
     action: "",
@@ -31,16 +32,13 @@ export function GridDataTable({ data, tableColumnData }) {
   const [globalFilter, setGlobalFilter] = useState(null);
   const toast = useRef(null);
   const dt = useRef(null);
-
+  const navigate = useNavigate();
   //   querys
 
   const product = useSelector((state) => state.product);
+  const products = useSelector((state) => state.products);
 
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    setProducts(data?.products);
-  }, [data?.products]);
 
   const openNew = () => {
     dispatch(setCurrentProduct(initialState_Product));
@@ -79,7 +77,7 @@ export function GridDataTable({ data, tableColumnData }) {
           life: 3000,
         });
       } else {
-        _product.id = products.length+1;
+        _product.id = products.length + 1;
         _product.image = "product-placeholder.svg";
         _products.push(_product);
         toast.current.show({
@@ -90,7 +88,7 @@ export function GridDataTable({ data, tableColumnData }) {
         });
       }
 
-      setProducts(_products);
+      dispatch(setAllProduct(_products));
       setProductDialog(false);
       dispatch(setCurrentProduct(initialState_Product));
     }
@@ -98,8 +96,7 @@ export function GridDataTable({ data, tableColumnData }) {
 
   const editProduct = (product) => {
     dispatch(setCurrentProduct({ ...product }));
-    setProductDialog(true);
-    setProductDialog({ value: true, action: "edit" });
+    navigate("/edit-product");
   };
 
   const confirmDeleteProduct = (product) => {
@@ -109,13 +106,13 @@ export function GridDataTable({ data, tableColumnData }) {
 
   const viewProduct = (product) => {
     dispatch(setCurrentProduct(product));
-    setProductDialog({ value: true, action: "view" });
+    navigate("/view-product");
   };
 
   const deleteProduct = () => {
     let _products = products.filter((val) => val.id !== product.id);
 
-    setProducts(_products);
+    dispatch(setAllProduct(_products));
     setDeleteProductDialog(false);
     dispatch(setCurrentProduct(initialState_Product));
     toast.current.show({
@@ -139,18 +136,6 @@ export function GridDataTable({ data, tableColumnData }) {
     return index;
   };
 
-  const createId = () => {
-    let id = "";
-    let chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    for (let i = 0; i < 5; i++) {
-      id += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-
-    return id;
-  };
-
   const exportCSV = () => {
     dt.current.exportCSV();
   };
@@ -162,7 +147,7 @@ export function GridDataTable({ data, tableColumnData }) {
   const deleteSelectedProducts = () => {
     let _products = products.filter((val) => !selectedProducts.includes(val));
 
-    setProducts(_products);
+    dispatch(setAllProduct(_products));
     setDeleteProductsDialog(false);
     setSelectedProducts(null);
     toast.current.show({
@@ -182,7 +167,7 @@ export function GridDataTable({ data, tableColumnData }) {
     let _product = { ...product };
     if (e.files.length) {
       _product["thumbnail"] = e.files[0].objectURL;
-      _product["images"] = e.files.map((d)=>d.objectURL);
+      _product["images"] = e.files.map((d) => d.objectURL);
       dispatch(setCurrentProduct(_product));
     }
   };
@@ -211,7 +196,11 @@ export function GridDataTable({ data, tableColumnData }) {
           label="New"
           icon="pi pi-plus"
           severity="success"
-          onClick={openNew}
+          onClick={() => {
+            dispatch(setCurrentProduct(initialState_Product));
+
+            navigate("/add-product");
+          }}
         />
         <Button
           label="Delete"
@@ -238,21 +227,25 @@ export function GridDataTable({ data, tableColumnData }) {
   const actionBodyTemplate = (rowData) => {
     return (
       <React.Fragment>
-        <Button
-          icon="pi pi-pencil"
-          rounded
-          outlined
-          className="mr-2"
-          onClick={() => editProduct(rowData)}
-        />
-        <Button
-          icon="pi pi-trash"
-          rounded
-          outlined
-          severity="danger"
-          className="mr-2"
-          onClick={() => confirmDeleteProduct(rowData)}
-        />
+        {isAdmin && (
+          <>
+            <Button
+              icon="pi pi-pencil"
+              rounded
+              outlined
+              className="mr-2"
+              onClick={() => editProduct(rowData)}
+            />
+            <Button
+              icon="pi pi-trash"
+              rounded
+              outlined
+              severity="danger"
+              className="mr-2"
+              onClick={() => confirmDeleteProduct(rowData)}
+            />
+          </>
+        )}
         <Button
           icon="pi pi-eye"
           rounded
@@ -319,35 +312,41 @@ export function GridDataTable({ data, tableColumnData }) {
     <div>
       <Toast ref={toast} />
       <div className="card">
-        <Toolbar
-          className="mb-4"
-          left={leftToolbarTemplate}
-          right={rightToolbarTemplate}
-        ></Toolbar>
+        {isAdmin && (
+          <Toolbar
+            className="mb-4"
+            left={leftToolbarTemplate}
+            right={rightToolbarTemplate}
+          ></Toolbar>
+        )}
 
-        <DataTable
-          ref={dt}
-          value={products}
-          selection={selectedProducts}
-          onSelectionChange={(e) => setSelectedProducts(e.value)}
-          dataKey="id"
-          paginator
-          rows={10}
-          rowsPerPageOptions={[5, 10, 25]}
-          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-          currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
-          globalFilter={globalFilter}
-          header={header}
-        >
-          {/* dynamic column mapping */}
-          {tableColumnData?.map((item, i) =>
-            item.header !== "Action" ? (
-              <Column key={i} {...item}></Column>
-            ) : (
-              <Column key={i} {...item} body={actionBodyTemplate}></Column>
-            )
-          )}
-        </DataTable>
+        {products.length ? (
+          <DataTable
+            ref={dt}
+            value={products}
+            selection={selectedProducts}
+            onSelectionChange={(e) => setSelectedProducts(e.value)}
+            dataKey="id"
+            paginator
+            rows={10}
+            rowsPerPageOptions={[5, 10, 25]}
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
+            globalFilter={globalFilter}
+            header={header}
+          >
+            {/* dynamic column mapping */}
+            {tableColumnData?.map((item, i) =>
+              item.header !== "Action" ? (
+                <Column key={i} {...item}></Column>
+              ) : (
+                <Column key={i} {...item} body={actionBodyTemplate}></Column>
+              )
+            )}
+          </DataTable>
+        ) : (
+          ""
+        )}
       </div>
 
       <Dialog
@@ -360,7 +359,7 @@ export function GridDataTable({ data, tableColumnData }) {
         footer={productDialog.action !== "view" && productDialogFooter}
         onHide={hideDialog}
       >
-        {productDialog.action === "view"&&!product.thumbnail && (
+        {productDialog.action === "view" && !product.thumbnail && (
           <img
             src={`https://primefaces.org/cdn/primereact/images/product/${product.image}`}
             alt={product.thumbnail}

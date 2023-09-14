@@ -1,11 +1,45 @@
 import Layout from "../layout/Layout";
+import EditProduct from "../pages/EditProduct/EditProduct.jsx";
+import AllProducts from "../pages/allproducts/AllProducts";
 import Dashboard from "../pages/dashboard/Dashboard";
-import Home from "../pages/home/home";
+import PageNotFound from "../pages/pageNotFound/PageNotFound";
+import ViewProduct from "../pages/viewProduct/ViewProduct";
 
 const routes = [
   {
-    path: "/",
-    element: <Home/>,
+    path: "/edit-product",
+    element: (
+      <Layout>
+        <EditProduct />
+      </Layout>
+    ),
+    exact: true,
+  },
+  {
+    path: "/add-product",
+    element: (
+      <Layout>
+        <EditProduct />
+      </Layout>
+    ),
+    exact: true,
+  },
+  {
+    path: "/view-product",
+    element: (
+      <Layout>
+        <ViewProduct />
+      </Layout>
+    ),
+    exact: true,
+  },
+  {
+    path: "/all-products",
+    element: (
+      <Layout title="All Products">
+        <AllProducts />
+      </Layout>
+    ),
     exact: true,
   },
   {
@@ -13,6 +47,15 @@ const routes = [
     element: (
       <Layout>
         <Dashboard />
+      </Layout>
+    ),
+    exact: true,
+  },
+  {
+    path: "*",
+    element: (
+      <Layout>
+        <PageNotFound />
       </Layout>
     ),
   },
