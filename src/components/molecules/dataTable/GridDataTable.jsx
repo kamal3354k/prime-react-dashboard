@@ -40,12 +40,6 @@ export function GridDataTable({ tableColumnData, isAdmin }) {
 
   const dispatch = useDispatch();
 
-  const openNew = () => {
-    dispatch(setCurrentProduct(initialState_Product));
-    setSubmitted(false);
-    setProductDialog({ value: true, action: "add" });
-  };
-
   const hideDialog = () => {
     setSubmitted(false);
     setProductDialog((pre) => ({ ...pre, value: false }));

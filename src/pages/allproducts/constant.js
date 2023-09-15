@@ -68,3 +68,9 @@ export const productCategoryList = [
   { value: "groceries", text: "Groceries" },
   { value: "home-decoration", text: "Home Decoration" },
 ];
+
+
+export const sortOptions = [
+  { label: 'Price High to Low', value: '!price' },
+  { label: 'Price Low to High', value: 'price' }
+];
